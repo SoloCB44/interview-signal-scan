@@ -16,6 +16,14 @@ Choose your language to begin:
 
 language = st.radio("🌍 Language / اللغة:", ["English", "العربية"], key="lang")
 
+if 'current_group' not in st.session_state:
+    st.session_state.current_group = 1
+if 'next_clicked' not in st.session_state:
+    st.session_state.next_clicked = False
+if 'back_clicked' not in st.session_state:
+    st.session_state.back_clicked = False
+
+# Language-based headers
 if language == "العربية":
     st.markdown("""
     ✅ هذا الأداة خاصة وآمنة — لا يتم حفظ أو مشاركة أي بيانات شخصية.
@@ -27,82 +35,76 @@ if language == "العربية":
 else:
     st.header("🧭 Step-by-Step Interview Review")
 
-# Session state init
-TOTAL_GROUPS = 5
-if 'current_group' not in st.session_state:
-    st.session_state.current_group = 1
+# Define navigation buttons
+col1, col2 = st.columns([1, 5])
+with col1:
+    if st.session_state.current_group > 1:
+        back = st.button("⬅️ Back")
+        if back:
+            st.session_state.back_clicked = True
+with col2:
+    next = st.button("➡️ Next")
+    if next:
+        st.session_state.next_clicked = True
 
-def navigation_buttons():
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        if st.session_state.current_group > 1:
-            if st.button("⬅️ Back"):
-                st.session_state.current_group -= 1
-    with col2:
-        if st.button("➡️ Next"):
-            st.session_state.current_group += 1
+# Handle navigation
+if st.session_state.next_clicked:
+    st.session_state.current_group += 1
+    st.session_state.next_clicked = False
+elif st.session_state.back_clicked:
+    st.session_state.current_group -= 1
+    st.session_state.back_clicked = False
 
-# Group 1 – Depth
+# Step 1 – Choose Scan Depth
 if st.session_state.current_group == 1:
     st.subheader("📍 Group 1 of 5 – Choose Scan Depth")
-    if language == "العربية":
-        st.selectbox("اختر المستوى:", [
-            "1. 🟢 تحليل سريع (3 دقائق / 5 مجموعات)",
-            "2. 🔵 قياسي (5 دقائق / 7 مجموعات)",
-            "3. 🟣 عميق (8 دقائق / 10 مجموعات)",
-            "4. 🟠 تشخيص متقدم (10+ دقائق / 15 مجموعة)",
-            "5. ⚫ وضع خبير (يشمل التوقعات والرسوم البيانية)"
-        ], key="depth")
-        if st.session_state.depth.startswith("3") or st.session_state.depth.startswith("4") or st.session_state.depth.startswith("5"):
-            st.radio("هل ترغب بالحصول على رسوم بيانية؟", ["نعم", "لا"], key="visuals")
-            if st.session_state.visuals == "نعم":
-                st.selectbox("اختر نوع الرسم البياني:", [
-                    "📊 Bar Graphs", "🧭 Radar Charts", "🧠 Heatmaps", "🔄 Sankey Flows", "💡 Custom Visual"
-                ], key="chart")
-    else:
-        st.selectbox("Choose a level:", [
-            "1. 🟢 QUICK SCAN (3 mins / 5 groups)",
-            "2. 🔵 STANDARD (5 mins / 7 groups)",
-            "3. 🟣 DEEP SCAN (8 mins / 10 groups)",
-            "4. 🟠 ADVANCED DIAGNOSTIC (10+ mins / 15 groups)",
-            "5. ⚫ EXPERT MODE (with visuals and forecasting)"
-        ], key="depth")
-        if st.session_state.depth.startswith("3") or st.session_state.depth.startswith("4") or st.session_state.depth.startswith("5"):
-            st.radio("Would you like to generate charts or visual feedback?", ["Yes", "No"], key="visuals")
-            if st.session_state.visuals == "Yes":
-                st.selectbox("Choose your visual style:", [
-                    "📊 Bar Graphs", "🧭 Radar Charts", "🧠 Heatmaps", "🔄 Sankey Flows", "💡 Custom Visual"
-                ], key="chart")
-    navigation_buttons()
+    st.selectbox("Choose a level:" if language == "English" else "اختر المستوى:", [
+        "1. 🟢 QUICK SCAN (3 mins / 5 groups)" if language == "English" else "1. 🟢 تحليل سريع (3 دقائق / 5 مجموعات)",
+        "2. 🔵 STANDARD (5 mins / 7 groups)" if language == "English" else "2. 🔵 قياسي (5 دقائق / 7 مجموعات)",
+        "3. 🟣 DEEP SCAN (8 mins / 10 groups)" if language == "English" else "3. 🟣 عميق (8 دقائق / 10 مجموعات)",
+        "4. 🟠 ADVANCED DIAGNOSTIC (10+ mins / 15 groups)" if language == "English" else "4. 🟠 تشخيص متقدم (10+ دقائق / 15 مجموعة)",
+        "5. ⚫ EXPERT MODE (with visuals and forecasting)" if language == "English" else "5. ⚫ وضع خبير (يشمل التوقعات والرسوم البيانية)"
+    ], key="depth")
+    if st.session_state.depth.startswith("3") or st.session_state.depth.startswith("4") or st.session_state.depth.startswith("5"):
+        st.radio("Would you like to generate charts or visual feedback?" if language == "English" else "هل ترغب بالحصول على رسوم بيانية؟", ["Yes" if language == "English" else "نعم", "No" if language == "English" else "لا"], key="visuals")
+        if st.session_state.visuals in ["Yes", "نعم"]:
+            st.selectbox("Choose your visual style:" if language == "English" else "اختر نوع الرسم البياني:", [
+                "📊 Bar Graphs", "🧭 Radar Charts", "🧠 Heatmaps", "🔄 Sankey Flows", "💡 Custom Visual"
+            ], key="chart")
 
-# Group 2 – Context
+# Step 2 – Interview Context
 elif st.session_state.current_group == 2:
     st.subheader("📍 Group 2 of 5 – Interview Context")
-    if language == "العربية":
-        st.selectbox("نوع المقابلة:", [
-            "1. تقنية", "2. سلوكية", "3. مبيعات", "4. رعاية صحية", "5. أكاديمية / بحث", "6. خدمة عملاء", "7. أخرى"
-        ], key="type")
-        st.radio("مستوى الوظيفة:", ["1. مبتدئ", "2. متوسط", "3. خبير", "4. إدارة/قيادة"], key="level")
-        st.radio("صيغة المقابلة:", ["1. حضور شخصي", "2. فيديو", "3. هاتف"], key="format")
-        st.text_area("معلومات إضافية:", key="extras")
-    else:
-        st.selectbox("What kind of interview was it?", [
-            "1. Technical", "2. Behavioral", "3. Sales", "4. Healthcare", "5. Academic / Research", "6. Customer Service", "7. Other"
-        ], key="type")
-        st.radio("Job level:", ["1. Entry", "2. Mid-level", "3. Senior", "4. Executive/Management"], key="level")
-        st.radio("Interview format:", ["1. In-person", "2. Video", "3. Phone"], key="format")
-        st.text_area("Optional extras:", key="extras")
-    navigation_buttons()
+    st.selectbox("What kind of interview was it?" if language == "English" else "نوع المقابلة:", [
+        "1. Technical" if language == "English" else "1. تقنية",
+        "2. Behavioral" if language == "English" else "2. سلوكية",
+        "3. Sales" if language == "English" else "3. مبيعات",
+        "4. Healthcare" if language == "English" else "4. رعاية صحية",
+        "5. Academic / Research" if language == "English" else "5. أكاديمية / بحث",
+        "6. Customer Service" if language == "English" else "6. خدمة عملاء",
+        "7. Other" if language == "English" else "7. أخرى"
+    ], key="type")
+    st.radio("Job level:" if language == "English" else "مستوى الوظيفة:", [
+        "1. Entry" if language == "English" else "1. مبتدئ",
+        "2. Mid-level" if language == "English" else "2. متوسط",
+        "3. Senior" if language == "English" else "3. خبير",
+        "4. Executive/Management" if language == "English" else "4. إدارة/قيادة"
+    ], key="level")
+    st.radio("Interview format:" if language == "English" else "صيغة المقابلة:", [
+        "1. In-person" if language == "English" else "1. حضور شخصي",
+        "2. Video" if language == "English" else "2. فيديو",
+        "3. Phone" if language == "English" else "3. هاتف"
+    ], key="format")
+    st.text_area("Optional extras:" if language == "English" else "معلومات إضافية:", key="extras")
 
-# Group 3 – Signal Check
+# Step 3 – Signal Check
 elif st.session_state.current_group == 3:
     st.subheader("📍 Group 3 of 5 – Signal Check")
     st.radio("How confident were you in your responses?", ["✅ Strong", "⚠️ Somewhat", "❌ Unsure"], key="conf")
     st.radio("How fast did they follow up?", ["✅ <24h", "⚠️ 1–3 days", "❌ Longer"], key="speed")
     st.radio("Did they describe next steps clearly?", ["✅ Yes", "⚠️ Vague", "❌ No"], key="nextsteps")
-    navigation_buttons()
 
-# Group 4 – Show Results
+# Step 4 – Show Results
 elif st.session_state.current_group == 4:
     st.subheader("📍 Group 4 of 5 – Analyzing Results...")
     with st.spinner("Calculating signals..."):
@@ -115,9 +117,8 @@ elif st.session_state.current_group == 4:
     st.write("**Top Strengths:** Engaged tone, clear next steps")
     st.write("**Top Risks:** Timing delays, short interview duration")
     st.bar_chart([score, 100 - score])
-    navigation_buttons()
 
-# Group 5 – Closing
+# Step 5 – Closing
 elif st.session_state.current_group == 5:
     st.subheader("📍 Group 5 of 5 – What to Do Next")
     st.markdown("""
